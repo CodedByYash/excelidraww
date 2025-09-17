@@ -14,7 +14,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "typescript": "^5.8.2",
-    "@repo/typescript-config": "*"
+    "@repo/typescript-config": "*",
+    "dotenv": "^16.0.3",
+    "typescript": "^5.8.2"
   }
 }
