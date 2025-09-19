@@ -187,12 +187,11 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
         "fromEnvVar": "DATABASE_URL",
-        "value": null
+        "value": "postgresql://excelidraw_owner:npg_haRq4bLge6TF@ep-wispy-morning-a13o02io-pooler.ap-southeast-1.aws.neon.tech/excelidraw?sslmode=require"
       }
     }
   },

@@ -14,6 +14,18 @@ export const SigninSchema = z.object({
   password: z.string().min(8).max(128),
 });
 
-export const CreateRoom = z.object({
+export const CreateRoomSchema = z.object({
   name: z.string().trim().min(3).max(60),
+});
+
+export const RoomIdParamSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const RoomParamSchema = z.object({
+  roomId: z.string().uuid(),
+});
+
+export const SaveCanvasSchema = z.object({
+  design: z.any(),
 });

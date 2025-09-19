@@ -3,6 +3,8 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import authRouter from "./routes/authRoute";
+import roomRouter from "./routes/roomRoute";
+import canvasRouter from "./routes/canvasRoute";
 
 const app = express();
 
@@ -27,6 +29,8 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 app.use("/auth", authRouter);
+app.use("/rooms", roomRouter);
+app.use("/rooms/:roomId/canvas", canvasRouter);
 // Room routes will be mounted later, keep placeholder
 app.listen(3000, () => {
   console.log("Server running on port 3000");
