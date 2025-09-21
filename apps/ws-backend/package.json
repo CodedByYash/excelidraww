@@ -6,13 +6,16 @@
   "scripts": {
     "build": "tsc -b",
     "start": "node dist/index.js",
-    "dev": "bun run build && bun run start"
+    "dev": "npm run build && npm run start"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@repo/backend-common": "*",
+    "@repo/common": "*",
+    "@repo/db": "*",
     "@repo/typescript-config": "*",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/ws": "^8.18.1",

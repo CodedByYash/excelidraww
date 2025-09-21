@@ -29,3 +29,16 @@ export const RoomParamSchema = z.object({
 export const SaveCanvasSchema = z.object({
   design: z.any(),
 });
+
+export type WsServerEvent =
+  | { type: "presence.join"; userId: string; email: string }
+  | { type: "presence.leave"; userId: string }
+  | { type: "presence.update"; userId: string; x: number; y: number }
+  | { type: "snapshot.push"; design: any }
+  | { type: "snapshot.ack" };
+
+export type WsClientEvent =
+  | { type: "cursor.update"; x: number; y: number }
+  | { type: "snapshot.request" };
+
+export type WsMessage = WsServerEvent | WsClientEvent;
