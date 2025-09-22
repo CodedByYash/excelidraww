@@ -30,10 +30,19 @@ api.interceptors.response.use(
   }
 );
 
-export const authapi = {
+export const authApi = {
   signup: (data: { email: string; name: string; password: string }) =>
     api.post("/auth/signup", data),
   signin: (data: { email: string; password: string }) =>
     api.post("/auth/signin", data),
   me: () => api.get("/auth/me"),
+};
+
+export const roomsApi = {
+  list: () => api.get("/rooms"),
+  create: (data: { name: string }) => api.post("/rooms", data),
+  join: (roomId: string) => api.post(`/rooms/${roomId}/join`),
+  getCanvas: (roomId: string) => api.get(`/rooms/${roomId}/canvas/latest`),
+  saveCanvas: (roomId: string, design: any) =>
+    api.post(`/rooms/${roomId}/canvas`, { design }),
 };

@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 
 interface User {
   id: string;
-  emai: string;
+  email: string;
   name: string;
   username?: string;
   createdAt: string;
@@ -23,7 +23,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       user: null,
       isAuthenticated: false,
-      setAuth: (token, user) => set({ token, user, isAuthenticated: false }),
+      setAuth: (token, user) => set({ token, user, isAuthenticated: true }),
       clearAuth: () => set({ token: null, user: null, isAuthenticated: false }),
     }),
     {

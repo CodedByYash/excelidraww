@@ -1,13 +1,19 @@
-import { WebSocketServer } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import prisma from "@repo/db/client";
 
+interface ExtendedWebSocket extends WebSocket {
+  userId?: string;
+  roomId?: string;
+  email?: string;
+}
+
 const wss = new WebSocketServer({ port: 8080 });
 
-const roomConnections = new Map<String, Set<any>>();
+const roomConnections = new Map<string, Set<any>>();
 
-wss.on("connection", async (ws, req) => {
+wss.on("connection", async (ws: ExtendedWebSocket, req) => {
   try {
     const url = new URL(req.url!, `http://localhost:8080`);
     const token = url.searchParams.get("token");
@@ -80,31 +86,37 @@ wss.on("connection", async (ws, req) => {
   }
 });
 
-function broadcastToRoom(roomId: string, message: any, exclude?: any) {
+function broadcastToRoom(
+  roomId: string,
+  message: any,
+  exclude?: ExtendedWebSocket
+) {
   const connections = roomConnections.get(roomId);
   if (!connections) return;
 
   const messageStr = JSON.stringify(message);
-  connections.forEach((ws) => {
-    if (ws !== exclude && ws.readyState === ws.OPEN) {
-      ws.send(messageStr);
+  connections.forEach((connection) => {
+    if (connection !== exclude && connection.readyState === connection.OPEN) {
+      connection.send(messageStr);
     }
   });
 }
 
-function handleMessage(ws: any, message: any) {
+function handleMessage(ws: ExtendedWebSocket, message: any) {
   switch (message.type) {
     case "cursor.update":
-      broadcastToRoom(
-        ws.roomId,
-        {
-          type: "cursor.update",
-          userId: ws.userId,
-          x: message.x,
-          y: message.y,
-        },
-        ws
-      );
+      if (ws.roomId && ws.userId) {
+        broadcastToRoom(
+          ws.roomId,
+          {
+            type: "cursor.update",
+            userId: ws.userId,
+            x: message.x,
+            y: message.y,
+          },
+          ws
+        );
+      }
       break;
     case "snapshot.request":
       ws.send(JSON.stringify({ type: "snapshot.ack" }));
