@@ -6,7 +6,7 @@ import authRouter from "./routes/authRoute";
 import roomRouter from "./routes/roomRoute";
 import canvasRouter from "./routes/canvasRoute";
 
-const app = express();
+export const app = express();
 
 app.use(express.json());
 app.use(helmet());
@@ -27,9 +27,21 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+const writeLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: true,
+});
 app.use(limiter);
-app.use("/auth", authRouter);
-app.use("/rooms", roomRouter);
+app.use("/auth", authLimiter, authRouter);
+app.use("/rooms", writeLimiter, roomRouter);
 app.use("/rooms/:roomId/canvas", canvasRouter);
 // Room routes will be mounted later, keep placeholder
 app.listen(3000, () => {

@@ -14,25 +14,46 @@ export default function BoardPage() {
   const { joinRoom } = useRoomsStore();
   const roomId = params.roomId as string;
 
-  const [connected, setConnected] = useState(false);
   const [users, setUsers] = useState<Set<string>>(new Set());
   const [cursors, setCursors] = useState<Map<string, { x: number; y: number }>>(
     new Map()
   );
+  const [room, setRoom] = useState<{ id: string; slug: string } | null>(null);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
 
-  const { ws, connect, disconnect } = useWebSocket(roomId, {
-    onConnect: () => setConnected(true),
-    onDisconnect: () => setConnected(false),
-    onPresenceJoin: (userId) => setUsers((prev) => new Set([...prev, userId])),
-    onPresenceLeave: (userId) =>
-      setUsers((prev) => {
-        const newUsers = new Set(prev);
-        newUsers.delete(userId);
-        return newUsers;
-      }),
-    onCursorUpdate: (userId, x, y) =>
-      setCursors((prev) => new Map([...prev, [userId, { x, y }]])),
-  });
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await roomsApi.getRoom(roomId);
+        if (mounted) setRoom(res.data.room);
+      } catch (error) {
+        console.error("Failed to get room:", error);
+        router.push("/dashboard");
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [roomId, router]);
+
+  const { ws, connected, connect, disconnect, sendMessage } = useWebSocket(
+    roomId,
+    {
+      onConnect: () => {},
+      onDisconnect: () => {},
+      onPresenceJoin: (userId) =>
+        setUsers((prev) => new Set([...prev, userId])),
+      onPresenceLeave: (userId) =>
+        setUsers((prev) => {
+          const next = new Set(prev);
+          next.delete(userId);
+          return next;
+        }),
+      onCursorUpdate: (userId, x, y) =>
+        setCursors((prev) => new Map([...prev, [userId, { x, y }]])),
+    }
+  );
 
   const [design, setDesign] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,27 +104,27 @@ export default function BoardPage() {
       try {
         await roomsApi.saveCanvas(roomId, design);
         setSaveError(null);
+        setSavedAt(Date.now());
+        setTimeout(() => setSavedAt(null), 1500);
       } catch (e: any) {
-        setSaveError(e.response?.data?.message || "Failed to save");
+        setSaveError(e?.response?.data?.message || "Failed to save");
       }
     }, 1200);
     return () => clearTimeout(handle);
   }, [roomId, designKey]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (ws && connected) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+    if (!connected) return;
 
-      ws.send(
-        JSON.stringify({
-          type: "cursor.update",
-          x,
-          y,
-        })
-      );
-    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    sendMessage({
+      type: "cursor.update",
+      x,
+      y,
+    });
   };
 
   const handleClick = (e: React.MouseEvent) => {
@@ -132,19 +153,32 @@ export default function BoardPage() {
               >
                 ← Back to Dashboard
               </button>
-              <h1 className="text-xl font-semibold">Room: {roomId}</h1>
+              <h1 className="text-xl font-semibold">
+                Room: {room?.slug?.replace(/-/g, " ") || roomId}
+              </h1>
             </div>
             <div className="flex items-center space-x-4">
               <div
                 className={`w-3 h-3 rounded-full ${connected ? "bg-green-500" : "bg-red-500"}`}
-              ></div>
+              />
               <span className="text-sm text-gray-600">
                 {connected ? "Connected" : "Disconnected"}
               </span>
+              {!connected && (
+                <span className="text-xs text-yellow-600">Reconnecting...</span>
+              )}
               <span className="text-sm text-gray-600">
                 {users.size} user{users.size !== 1 ? "s" : ""} online
               </span>
+              <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded ">
+                {}
+              </span>
             </div>
+            {savedAt && (
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-green-100 text-green-800 px-3 py-1 rounded text-xs shadow saved-badge">
+                Saved
+              </div>
+            )}
           </div>
         </div>
       </nav>

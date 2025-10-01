@@ -103,8 +103,25 @@ function broadcastToRoom(
 }
 
 function handleMessage(ws: ExtendedWebSocket, message: any) {
+  if (
+    typeof message !== "object" ||
+    message === null ||
+    typeof message.type !== "string"
+  ) {
+    console.warn("Invalid message structure");
+    return;
+  }
+  const messageStr = JSON.stringify(message);
+  if (messageStr.length > 64 * 1024) {
+    console.warn("Message too large, dropping");
+    return;
+  }
   switch (message.type) {
     case "cursor.update":
+      if (typeof message.x !== "number" || typeof message.y !== "number") {
+        console.warn("Invalid message structure");
+        return;
+      }
       if (ws.roomId && ws.userId) {
         broadcastToRoom(
           ws.roomId,
@@ -120,6 +137,9 @@ function handleMessage(ws: ExtendedWebSocket, message: any) {
       break;
     case "snapshot.request":
       ws.send(JSON.stringify({ type: "snapshot.ack" }));
+      break;
+    case "ping":
+      ws.send(JSON.stringify({ type: "pong" }));
       break;
     default:
       console.log("Unknown message types:", message.type);

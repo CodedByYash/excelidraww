@@ -45,4 +45,5 @@ export const roomsApi = {
   getCanvas: (roomId: string) => api.get(`/rooms/${roomId}/canvas/latest`),
   saveCanvas: (roomId: string, design: any) =>
     api.post(`/rooms/${roomId}/canvas`, { design }),
+  getRoom: (roomId: string) => api.get(`/room/${roomId}`),
 };

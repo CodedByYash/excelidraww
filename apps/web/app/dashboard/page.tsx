@@ -108,6 +108,14 @@ export default function DashboardPage() {
           ) : rooms.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               No rooms yet. Create your first room to get started!
+              <div className="mt-4">
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Create Room
+                </button>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -118,7 +126,7 @@ export default function DashboardPage() {
                   onClick={() => router.push(`/board/${room.id}`)}
                 >
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {room.slug.replace(/-/g, " ")}
+                    {(room.slug || "").replace(/-/g, " ")}
                   </h3>
                   <p className="text-sm text-gray-500">
                     Created {new Date(room.createdAt).toLocaleDateString()}
@@ -127,6 +135,31 @@ export default function DashboardPage() {
                     <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
                       {room.adminId === user?.id ? "Admin" : "Member"}
                     </span>
+                  </div>
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/board/${room.id}`);
+                      }}
+                      className="px-3 py-1 rounded bg-blue-600 text-white text-sm hover:bg-blue-700"
+                    >
+                      Open
+                    </button>
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        const link = `${window.location.origin}/board/${room.id}`;
+                        try {
+                          await navigator.clipboard.writeText(link);
+                        } catch {
+                          prompt("Copy link", link);
+                        }
+                      }}
+                      className="px-3 py-1 rounded bg-gray-100 text-gray-800 text-sm hover:bg-gray-200"
+                    >
+                      Copy link
+                    </button>
                   </div>
                 </div>
               ))}
